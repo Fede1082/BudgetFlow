@@ -3,7 +3,12 @@
  * Centralizes all backend API calls for the BudgetFlow application
  */
 
+// Point directly to backend on port 3000
+// In production, use VITE_API_URL env var
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+
+// Debug log
+console.log('🌐 API Base URL:', API_BASE_URL)
 
 // Types
 export interface Transaction {
@@ -33,7 +38,7 @@ export interface ApiResponse<T = any> {
 async function fetchRequest<T>(
   endpoint: string,
   options: RequestInit = {}
-): Promise<ApiResponse<T>> {
+): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`
   const headers = {
     'Content-Type': 'application/json',
@@ -47,26 +52,17 @@ async function fetchRequest<T>(
     })
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({
-        error: `HTTP ${response.status}`,
+      const errorData = await response.json().catch(() => ({
+        message: `HTTP Error: ${response.status}`,
       }))
-      return {
-        success: false,
-        error: error.error || `HTTP Error: ${response.status}`,
-      }
+      throw new Error(errorData.message || errorData.error || `HTTP ${response.status}`)
     }
 
     const data = await response.json()
-    return {
-      success: true,
-      data,
-    }
+    return data as T
   } catch (error) {
     console.error('API Error:', error)
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Unknown error occurred',
-    }
+    throw error
   }
 }
 
@@ -75,21 +71,21 @@ export const TransactionAPI = {
   /**
    * Get all transactions
    */
-  getAll: async (): Promise<ApiResponse<Transaction[]>> => {
+  getAll: async (): Promise<Transaction[]> => {
     return fetchRequest<Transaction[]>('/transactions')
   },
 
   /**
    * Get a single transaction by ID
    */
-  getById: async (id: string): Promise<ApiResponse<Transaction>> => {
+  getById: async (id: string): Promise<Transaction> => {
     return fetchRequest<Transaction>(`/transactions/${id}`)
   },
 
   /**
    * Create a new transaction
    */
-  create: async (transaction: Omit<Transaction, 'id'>): Promise<ApiResponse<Transaction>> => {
+  create: async (transaction: Omit<Transaction, 'id'>): Promise<Transaction> => {
     return fetchRequest<Transaction>('/transactions', {
       method: 'POST',
       body: JSON.stringify(transaction),
@@ -99,7 +95,7 @@ export const TransactionAPI = {
   /**
    * Update an existing transaction
    */
-  update: async (id: string, transaction: Partial<Transaction>): Promise<ApiResponse<Transaction>> => {
+  update: async (id: string, transaction: Partial<Transaction>): Promise<Transaction> => {
     return fetchRequest<Transaction>(`/transactions/${id}`, {
       method: 'PUT',
       body: JSON.stringify(transaction),
@@ -109,8 +105,8 @@ export const TransactionAPI = {
   /**
    * Delete a transaction
    */
-  delete: async (id: string): Promise<ApiResponse<void>> => {
-    return fetchRequest<void>(`/transactions/${id}`, {
+  delete: async (id: string): Promise<{ success: boolean; message: string }> => {
+    return fetchRequest<{ success: boolean; message: string }>(`/transactions/${id}`, {
       method: 'DELETE',
     })
   },
@@ -118,14 +114,14 @@ export const TransactionAPI = {
   /**
    * Get transactions by category
    */
-  getByCategory: async (category: string): Promise<ApiResponse<Transaction[]>> => {
+  getByCategory: async (category: string): Promise<Transaction[]> => {
     return fetchRequest<Transaction[]>(`/transactions?category=${encodeURIComponent(category)}`)
   },
 
   /**
    * Get transactions by date range
    */
-  getByDateRange: async (startDate: string, endDate: string): Promise<ApiResponse<Transaction[]>> => {
+  getByDateRange: async (startDate: string, endDate: string): Promise<Transaction[]> => {
     return fetchRequest<Transaction[]>(
       `/transactions?startDate=${encodeURIComponent(startDate)}&endDate=${encodeURIComponent(endDate)}`
     )
@@ -137,21 +133,21 @@ export const AccountAPI = {
   /**
    * Get all accounts
    */
-  getAll: async (): Promise<ApiResponse<Account[]>> => {
+  getAll: async (): Promise<Account[]> => {
     return fetchRequest<Account[]>('/accounts')
   },
 
   /**
    * Get a single account by ID
    */
-  getById: async (id: string): Promise<ApiResponse<Account>> => {
+  getById: async (id: string): Promise<Account> => {
     return fetchRequest<Account>(`/accounts/${id}`)
   },
 
   /**
    * Create a new account
    */
-  create: async (account: Omit<Account, 'id'>): Promise<ApiResponse<Account>> => {
+  create: async (account: Omit<Account, 'id'>): Promise<Account> => {
     return fetchRequest<Account>('/accounts', {
       method: 'POST',
       body: JSON.stringify(account),
@@ -161,7 +157,7 @@ export const AccountAPI = {
   /**
    * Update an existing account
    */
-  update: async (id: string, account: Partial<Account>): Promise<ApiResponse<Account>> => {
+  update: async (id: string, account: Partial<Account>): Promise<Account> => {
     return fetchRequest<Account>(`/accounts/${id}`, {
       method: 'PUT',
       body: JSON.stringify(account),
@@ -171,8 +167,8 @@ export const AccountAPI = {
   /**
    * Delete an account
    */
-  delete: async (id: string): Promise<ApiResponse<void>> => {
-    return fetchRequest<void>(`/accounts/${id}`, {
+  delete: async (id: string): Promise<{ success: boolean; message: string }> => {
+    return fetchRequest<{ success: boolean; message: string }>(`/accounts/${id}`, {
       method: 'DELETE',
     })
   },
@@ -183,25 +179,25 @@ export const StatsAPI = {
   /**
    * Get balance summary (income, expenses, net)
    */
-  getSummary: async (): Promise<ApiResponse<{
+  getSummary: async (): Promise<{
     totalIncome: number
     totalExpenses: number
     netBalance: number
-  }>> => {
+  }> => {
     return fetchRequest('/stats/summary')
   },
 
   /**
    * Get spending by category
    */
-  getSpendingByCategory: async (): Promise<ApiResponse<Array<{ category: string; amount: number }>>> => {
+  getSpendingByCategory: async (): Promise<Array<{ category: string; amount: number }>> => {
     return fetchRequest('/stats/spending-by-category')
   },
 
   /**
    * Get monthly summary
    */
-  getMonthlySummary: async (month?: string): Promise<ApiResponse<any>> => {
+  getMonthlySummary: async (month?: string): Promise<any> => {
     const query = month ? `?month=${encodeURIComponent(month)}` : ''
     return fetchRequest(`/stats/monthly-summary${query}`)
   },
@@ -212,7 +208,7 @@ export const HealthAPI = {
   /**
    * Check API health status
    */
-  check: async (): Promise<ApiResponse<{ status: string }>> => {
+  check: async (): Promise<{ status: string; timestamp: string }> => {
     return fetchRequest('/health')
   },
 }
@@ -220,23 +216,29 @@ export const HealthAPI = {
 // Utility functions
 export const ApiUtils = {
   /**
-   * Check if API response was successful
+   * Check if API response was successful (throws on error, so always true if no exception)
    */
-  isSuccess: (response: ApiResponse): boolean => response.success,
+  isSuccess: (response: any): boolean => !!response,
 
   /**
-   * Get error message from response
+   * Get error message - since we throw errors, this won't typically be used
+   * but keeping for API consistency
    */
-  getErrorMessage: (response: ApiResponse): string => response.error || 'Unknown error',
+  getErrorMessage: (error: any): string => {
+    if (error instanceof Error) {
+      return error.message
+    }
+    return typeof error === 'string' ? error : 'Unknown error'
+  },
 
   /**
    * Format error for UI display
    */
-  formatError: (response: ApiResponse): string => {
-    if (!response.success) {
-      return response.error || response.message || 'An error occurred'
+  formatError: (error: any): string => {
+    if (error instanceof Error) {
+      return error.message
     }
-    return ''
+    return typeof error === 'string' ? error : 'An error occurred'
   },
 }
 
