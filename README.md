@@ -1,137 +1,368 @@
-# BudgetFlow -- Personal Budget Tracker
+# BudgetFlow - Personal Budget Tracker 💰
 
-BudgetFlow is a full-stack budget management application designed to
-help users track income, expenses, and spending categories with clarity
-and ease.\
-It features a modern dashboard, real-time analytics, and a fully
-responsive mobile-first design.
+BudgetFlow is a full-stack budget tracking application built with Vue 3 and NestJS. It helps users track income, expenses, and spending categories with a modern, responsive interface.
 
-> The goal: provide clear, automated, and accessible financial
-> management for everyday users.
+**Live Demo:** http://localhost:5173 (after running locally)
 
-## 🚀 Features
+---
 
--   User Authentication (MongoDB)
--   Dashboard Overview
-    -   Monthly summary
-    -   Category distribution
-    -   Recent transactions
--   Income & Expense Tracking
--   Custom Categories
--   Advanced Filters & Search
--   Real-time Charts (Recharts)
--   Mobile-first UI (Vue)
--   AI-powered auto-categorization (optional feature)
+## ✨ Features
+
+✅ **Dashboard Overview**
+- Total income, expenses, and net balance
+- Recent transactions display
+- Real-time statistics
+
+✅ **Transaction Management**
+- View all transactions with filtering
+- Create, update, and delete transactions
+- Filter by category and date range
+- Category-based color coding
+
+✅ **Account Management**
+- Multiple account support
+- View all accounts with balances
+- Account type management
+
+✅ **Statistics & Analytics**
+- Summary of income vs expenses
+- Spending breakdown by category
+- Monthly summaries
+
+✅ **Responsive Design**
+- Mobile-first approach
+- Tailwind CSS styling
+- Professional UI with gradients and animations
+
+✅ **API Integration**
+- RESTful API with proper error handling
+- Type-safe communication (TypeScript)
+- CORS support for development
+
+---
 
 ## 🧰 Tech Stack
 
 ### Frontend
-
--   Vue.js 3
--   Vue Router
--   Pinia (State Management)
--   Tailwind CSS
--   Recharts
+- **Vue.js 3** - Progressive JavaScript framework
+- **TypeScript** - Type safety
+- **Vite** - Lightning-fast build tool
+- **Pinia** - State management
+- **Vue Router** - Client-side routing
+- **Tailwind CSS** - Utility-first CSS framework
 
 ### Backend
+- **NestJS** - Progressive Node.js framework
+- **TypeScript** - Type safety
+- **Express** - HTTP framework (via NestJS)
+- **In-Memory Storage** - Sample data (can be replaced with database)
 
--   Node.js + Express
--   JWT Authentication
--   REST API Architecture
+### Development
+- **CORS Enabled** - Cross-origin requests handled
+- **Hot Reload** - Auto-refresh on code changes
+- **Type Checking** - Full TypeScript support
 
-### Database
-
--   MongoDB (Users & Auth)
--   PostgreSQL (Transactions, Categories, Stats)
-
-### DevOps (optional)
-
--   Docker
--   GitHub Actions CI/CD
--   Deployment on AWS / Render / Vercel
+---
 
 ## 📂 Project Structure
 
-    BudgetFlow/
-    │
-    ├── client/               # Vue.js Frontend
-    │   ├── src/
-    │   ├── public/
-    │   └── ...
-    │
-    ├── server/               # Node.js Backend
-    │   ├── src/
-    │   ├── routes/
-    │   ├── controllers/
-    │   ├── models/
-    │   └── ...
-    │
-    └── README.md
+```
+BudgetFlow/
+├── client/                          # Vue 3 Frontend
+│   ├── src/
+│   │   ├── components/              # Vue components
+│   │   │   ├── Dashboard.vue        # Main dashboard
+│   │   │   ├── TransactionsPage.vue # Transactions view
+│   │   │   ├── AccountsPage.vue     # Accounts view
+│   │   │   ├── Header.vue           # Navigation header
+│   │   │   └── ...
+│   │   ├── services/
+│   │   │   └── api.ts               # API service layer
+│   │   ├── stores/
+│   │   │   └── transactions.ts      # Pinia store
+│   │   ├── router/
+│   │   │   └── index.ts             # Vue Router config
+│   │   ├── App.vue                  # Root component
+│   │   └── main.ts                  # Entry point
+│   ├── vite.config.ts               # Vite configuration
+│   ├── .env.local                   # Environment variables
+│   └── package.json
+│
+├── backend/                         # NestJS Backend
+│   ├── src/
+│   │   ├── transactions/            # Transactions module
+│   │   │   ├── transactions.controller.ts
+│   │   │   ├── transactions.service.ts
+│   │   │   ├── transactions.module.ts
+│   │   │   ├── dto/
+│   │   │   │   └── create-transaction.dto.ts
+│   │   │   └── entities/
+│   │   │       └── transaction.entity.ts
+│   │   ├── accounts/                # Accounts module
+│   │   ├── stats/                   # Statistics module
+│   │   ├── app.module.ts            # Root module
+│   │   ├── app.controller.ts        # Root controller
+│   │   ├── main.ts                  # Entry point
+│   │   └── ...
+│   ├── .env.local                   # Environment variables
+│   └── package.json
+│
+├── QUICKSTART.md                    # Quick start guide (30 seconds!)
+├── DEVELOPMENT.md                   # Full development guide
+├── CORS_GUIDE.md                    # CORS troubleshooting
+├── CORS_FIX.md                      # Technical CORS details
+├── DIAGNOSTIC.md                    # Diagnostic checklist
+└── README.md                        # This file
+```
 
-## ⚙️ Setup Instructions
+---
 
-### 1. Clone the repository
+## 🚀 Quick Start (30 seconds)
 
-    git clone https://github.com/your-username/BudgetFlow.git
-    cd BudgetFlow
+### Prerequisites
+- Node.js 20.19.0+ or 22.12.0+
+- npm or pnpm
 
-### 2. Install dependencies
+### Installation & Running
 
-#### Frontend:
+**Terminal 1 - Backend:**
+```bash
+cd backend
+npm install
+npm run start:dev
+```
+Expected output: `🚀 Backend running on http://localhost:3000`
 
-    cd client
-    npm install
+**Terminal 2 - Frontend:**
+```bash
+cd client
+npm install
+npm run dev
+```
+Expected output: `➜  Local:   http://localhost:5173/`
 
-#### Backend:
+**Open Browser:**
+```
+http://localhost:5173
+```
 
-    cd ../server
-    npm install
+That's it! 🎉
 
-### 3. Environment Variables
+---
 
-Create a `.env` file inside `/server`:
+## 📡 API Endpoints
 
-    PORT=5000
-    JWT_SECRET=your-secret-key
-    MONGO_URI=your-mongodb-connection
-    POSTGRES_URI=your-postgres-connection
+All endpoints are prefixed with `/api/`:
 
-### 4. Run the app
+### Transactions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/transactions` | Get all transactions |
+| GET | `/api/transactions/:id` | Get single transaction |
+| GET | `/api/transactions?category=Food` | Filter by category |
+| GET | `/api/transactions?startDate=...&endDate=...` | Filter by date range |
+| POST | `/api/transactions` | Create new transaction |
+| PUT | `/api/transactions/:id` | Update transaction |
+| DELETE | `/api/transactions/:id` | Delete transaction |
 
-#### Backend:
+### Accounts
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/accounts` | Get all accounts |
+| GET | `/api/accounts/:id` | Get single account |
+| GET | `/api/accounts/total-balance` | Get total balance |
+| POST | `/api/accounts` | Create new account |
+| PUT | `/api/accounts/:id` | Update account |
+| DELETE | `/api/accounts/:id` | Delete account |
 
-    cd server
-    npm run dev
+### Statistics
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/stats/summary` | Get balance summary |
+| GET | `/api/stats/spending-by-category` | Get spending by category |
+| GET | `/api/stats/monthly-summary` | Get monthly summary |
 
-#### Frontend:
+### Health
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/health` | Health check |
 
-    cd client
-    npm run dev
+---
 
-App available at:\
-`http://localhost:5173/`
+## 🔧 Development Commands
 
-## 📊 Screenshots (placeholders)
+### Frontend
+```bash
+cd client
 
-Add your own screenshots here:
+# Development server
+npm run dev
 
-    /assets/screenshots/dashboard.png
-    /assets/screenshots/transactions.png
+# Build for production
+npm run build
+
+# Type checking
+npm run type-check
+
+# Linting
+npm run lint
+```
+
+### Backend
+```bash
+cd backend
+
+# Development server (watch mode)
+npm run start:dev
+
+# Production build
+npm run build
+
+# Production start
+npm run start:prod
+
+# Testing
+npm run test
+
+# Linting
+npm run lint
+```
+
+---
+
+## 🌍 Environment Configuration
+
+### Frontend (client/.env.local)
+```env
+# API Base URL
+VITE_API_URL=http://localhost:3000/api
+```
+
+### Backend (backend/.env.local)
+```env
+# Server port
+PORT=3000
+
+# CORS configuration
+CORS_ORIGIN=http://localhost:5173
+
+# Environment
+NODE_ENV=development
+```
+
+---
+
+## � Example Transaction Object
+
+```typescript
+{
+  id: "t1",
+  title: "Salary",
+  amount: 3000,
+  date: "2025-11-01",
+  category: "Income",
+  notes: "Monthly salary",
+  createdAt: "2025-11-01T00:00:00Z",
+  updatedAt: "2025-11-01T00:00:00Z"
+}
+```
+
+---
+
+## 🐛 Troubleshooting
+
+### Backend won't start
+```bash
+# Check if port 3000 is in use
+lsof -i :3000
+
+# If needed, kill the process
+lsof -ti :3000 | xargs kill -9
+```
+
+### Frontend won't load
+```bash
+# Check if port 5173 is in use
+lsof -i :5173
+
+# Clear node_modules and reinstall
+rm -rf node_modules
+npm install
+```
+
+### API returns "Not Found"
+1. Ensure backend is running: `npm run start:dev` in backend folder
+2. Check backend console for error messages
+3. Verify CORS configuration in `backend/.env.local`
+4. See `CORS_GUIDE.md` for detailed troubleshooting
+
+### CORS Errors
+See `CORS_GUIDE.md` for comprehensive CORS troubleshooting guide.
+
+---
+
+## 📚 Documentation
+
+- **QUICKSTART.md** - 30-second setup guide
+- **DEVELOPMENT.md** - Complete development guide
+- **CORS_GUIDE.md** - CORS explanation and troubleshooting
+- **CORS_FIX.md** - Technical details of CORS implementation
+- **DIAGNOSTIC.md** - Step-by-step diagnostic checklist
+
+---
 
 ## 🗺️ Roadmap
 
--   [ ] Add recurring transactions\
--   [ ] Add multi-currency support\
--   [ ] Add PDF export for reports\
--   [ ] Add AI-based financial insights\
--   [ ] Add collaborative budgeting (shared accounts)
+- [ ] Database integration (PostgreSQL + TypeORM)
+- [ ] User authentication & authorization
+- [ ] Transaction categories customization
+- [ ] Advanced filtering & search
+- [ ] Data export (CSV, PDF)
+- [ ] Budget goals & tracking
+- [ ] Monthly reports
+- [ ] Mobile app (React Native)
+
+---
+
+## 💡 Sample Data
+
+The application comes with sample data:
+
+**Transactions:**
+- Salary: +€3,000 (Income)
+- Groceries: -€120.50 (Food)
+- Rent: -€800 (Housing)
+
+**Accounts:**
+- Main Account: €2,500.50 (Checking)
+- Savings Account: €10,000 (Savings)
+
+---
 
 ## 🤝 Contributing
 
-Pull requests are welcome.\
-For major changes, please open an issue first to discuss what you would
-like to modify.
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
 
 ## 📄 License
 
-MIT License -- free to use and modify.
+MIT License - feel free to use and modify as needed.
+
+---
+
+## 👤 Author
+
+Federico Guarda - [GitHub](https://github.com/Fede1082)
+
+---
+
+## ❓ Need Help?
+
+1. Check `DIAGNOSTIC.md` for step-by-step troubleshooting
+2. Review `CORS_GUIDE.md` for API communication issues
+3. Check the backend console for error messages
+4. Open an issue on GitHub
+
+**Happy budgeting! 🎉**
+

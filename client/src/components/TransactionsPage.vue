@@ -66,18 +66,13 @@ async function loadTransactions() {
   error.value = ''
 
   try {
-    const response = await TransactionAPI.getAll()
-
-    if (ApiUtils.isSuccess(response)) {
-      transactions.value = response.data || []
-      // Also sync with local store if needed
-      store.transactions.length = 0
-      store.transactions.push(...(response.data || []))
-    } else {
-      error.value = ApiUtils.getErrorMessage(response)
-    }
+    const data = await TransactionAPI.getAll()
+    transactions.value = Array.isArray(data) ? data : []
+    // Also sync with local store if needed
+    store.transactions.length = 0
+    store.transactions.push(...transactions.value)
   } catch (err) {
-    error.value = 'Failed to load transactions'
+    error.value = ApiUtils.formatError(err)
     console.error('Error loading transactions:', err)
   } finally {
     loading.value = false
@@ -111,21 +106,16 @@ async function handleDelete(tx: Transaction) {
   }
 
   try {
-    const response = await TransactionAPI.delete(tx.id)
-
-    if (ApiUtils.isSuccess(response)) {
-      // Remove from local state
-      transactions.value = transactions.value.filter(t => t.id !== tx.id)
-      // Also sync with store
-      store.remove(tx.id)
-      
-      // Show success message
-      console.log('Transaction deleted successfully')
-    } else {
-      alert(`Failed to delete transaction: ${ApiUtils.getErrorMessage(response)}`)
-    }
+    await TransactionAPI.delete(tx.id)
+    // Remove from local state
+    transactions.value = transactions.value.filter(t => t.id !== tx.id)
+    // Also sync with store
+    store.remove(tx.id)
+    
+    // Show success message
+    console.log('Transaction deleted successfully')
   } catch (err) {
-    alert('Error deleting transaction')
+    alert(`Failed to delete transaction: ${ApiUtils.formatError(err)}`)
     console.error('Error deleting transaction:', err)
   }
 }
