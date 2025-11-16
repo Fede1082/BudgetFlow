@@ -7,7 +7,7 @@ export class TransactionsController {
   constructor(private readonly transactionsService: TransactionsService) {}
 
   @Get()
-  findAll(
+  async findAll(
     @Query('category') category?: string,
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
@@ -22,8 +22,8 @@ export class TransactionsController {
   }
 
   @Get(':id')
-  findById(@Param('id') id: string) {
-    const transaction = this.transactionsService.findById(id)
+  async findById(@Param('id') id: string) {
+    const transaction = await this.transactionsService.findById(id)
     if (!transaction) {
       throw new HttpException('Transaction not found', HttpStatus.NOT_FOUND)
     }
@@ -31,13 +31,13 @@ export class TransactionsController {
   }
 
   @Post()
-  create(@Body() createTransactionDto: CreateTransactionDto) {
+  async create(@Body() createTransactionDto: CreateTransactionDto) {
     return this.transactionsService.create(createTransactionDto)
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateTransactionDto: UpdateTransactionDto) {
-    const updated = this.transactionsService.update(id, updateTransactionDto)
+  async update(@Param('id') id: string, @Body() updateTransactionDto: UpdateTransactionDto) {
+    const updated = await this.transactionsService.update(id, updateTransactionDto)
     if (!updated) {
       throw new HttpException('Transaction not found', HttpStatus.NOT_FOUND)
     }
@@ -45,8 +45,8 @@ export class TransactionsController {
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string) {
-    const deleted = this.transactionsService.delete(id)
+  async delete(@Param('id') id: string) {
+    const deleted = await this.transactionsService.delete(id)
     if (!deleted) {
       throw new HttpException('Transaction not found', HttpStatus.NOT_FOUND)
     }

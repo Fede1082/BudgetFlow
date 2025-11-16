@@ -4,6 +4,7 @@ export class CreateTransactionDto {
   date: string
   category?: string
   notes?: string
+  accountId?: string // Optional, will use default account if not provided
 }
 
 export class UpdateTransactionDto {
@@ -12,4 +13,5 @@ export class UpdateTransactionDto {
   date?: string
   category?: string
   notes?: string
+  accountId?: string
 }

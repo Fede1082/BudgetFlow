@@ -12,8 +12,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
-RUN npm run build
+# Build the application with verbose output
+RUN echo "🔨 Building Vue app..." && npm run build && echo "✅ Build complete!" && ls -la dist/
 
 # Production stage - use nginx for serving static files
 FROM nginx:alpine
@@ -24,12 +24,12 @@ COPY nginx.conf /etc/nginx/nginx.conf
 # Copy built application from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost/ || exit 1
+# Verify files are copied
+RUN echo "📁 Files in /usr/share/nginx/html:" && ls -la /usr/share/nginx/html/
 
 # Expose port
 EXPOSE 80
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
+

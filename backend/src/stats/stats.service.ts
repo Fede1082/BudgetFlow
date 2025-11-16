@@ -5,16 +5,16 @@ import { TransactionsService } from '../transactions/transactions.service'
 export class StatsService {
   constructor(private readonly transactionsService: TransactionsService) {}
 
-  getSummary() {
+  async getSummary() {
     return this.transactionsService.getSummary()
   }
 
-  getSpendingByCategory() {
+  async getSpendingByCategory() {
     return this.transactionsService.getSpendingByCategory()
   }
 
-  getMonthlySummary(month?: string) {
-    const transactions = this.transactionsService.findAll()
+  async getMonthlySummary(month?: string) {
+    const transactions = await this.transactionsService.findAll()
 
     // If no month specified, use current month
     const targetDate = month ? new Date(month) : new Date()

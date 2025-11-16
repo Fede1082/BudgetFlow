@@ -1,103 +1,184 @@
 import { Injectable } from '@nestjs/common'
-import { v4 as uuidv4 } from 'uuid'
 import { CreateTransactionDto, UpdateTransactionDto } from './dto/create-transaction.dto'
 import { Transaction } from './entities/transaction.entity'
+import { PrismaService } from '../prisma/prisma.service'
 
 @Injectable()
 export class TransactionsService {
-  private transactions: Transaction[] = [
-    {
-      id: 't1',
-      title: 'Salary',
-      amount: 3000,
-      date: '2025-11-01',
-      category: 'Income',
-      notes: 'Monthly salary',
-      createdAt: new Date('2025-11-01'),
-      updatedAt: new Date('2025-11-01'),
-    },
-    {
-      id: 't2',
-      title: 'Groceries',
-      amount: -120.5,
-      date: '2025-11-05',
-      category: 'Food',
-      notes: 'Weekly groceries',
-      createdAt: new Date('2025-11-05'),
-      updatedAt: new Date('2025-11-05'),
-    },
-    {
-      id: 't3',
-      title: 'Rent',
-      amount: -800,
-      date: '2025-11-03',
-      category: 'Housing',
-      notes: 'Monthly rent',
-      createdAt: new Date('2025-11-03'),
-      updatedAt: new Date('2025-11-03'),
-    },
-  ]
+  constructor(private prisma: PrismaService) {}
 
-  findAll(): Transaction[] {
-    return this.transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  async findAll(): Promise<Transaction[]> {
+    const transactions = await this.prisma.transaction.findMany({
+      orderBy: { date: 'desc' },
+      include: { account: true },
+    })
+    
+    return transactions.map((t) => ({
+      id: t.id,
+      title: t.title,
+      amount: t.type === 'income' ? t.amount : -t.amount,
+      date: t.date.toISOString().split('T')[0],
+      category: t.category,
+      notes: t.notes ?? undefined,
+      type: t.type,
+      accountId: t.accountId,
+      createdAt: t.createdAt,
+      updatedAt: t.updatedAt,
+    }))
   }
 
-  findById(id: string): Transaction | undefined {
-    return this.transactions.find((t) => t.id === id)
+  async findById(id: string): Promise<Transaction | null> {
+    const transaction = await this.prisma.transaction.findUnique({
+      where: { id },
+      include: { account: true },
+    })
+
+    if (!transaction) return null
+
+    return {
+      id: transaction.id,
+      title: transaction.title,
+      amount: transaction.type === 'income' ? transaction.amount : -transaction.amount,
+      date: transaction.date.toISOString().split('T')[0],
+      category: transaction.category,
+      notes: transaction.notes ?? undefined,
+      type: transaction.type,
+      accountId: transaction.accountId,
+      createdAt: transaction.createdAt,
+      updatedAt: transaction.updatedAt,
+    }
   }
 
-  findByCategory(category: string): Transaction[] {
-    return this.transactions.filter((t) => t.category?.toLowerCase() === category.toLowerCase())
+  async findByCategory(category: string): Promise<Transaction[]> {
+    const transactions = await this.prisma.transaction.findMany({
+      where: { category: { equals: category, mode: 'insensitive' } },
+      orderBy: { date: 'desc' },
+      include: { account: true },
+    })
+
+    return transactions.map((t) => ({
+      id: t.id,
+      title: t.title,
+      amount: t.type === 'income' ? t.amount : -t.amount,
+      date: t.date.toISOString().split('T')[0],
+      category: t.category,
+      notes: t.notes ?? undefined,
+      type: t.type,
+      accountId: t.accountId,
+      createdAt: t.createdAt,
+      updatedAt: t.updatedAt,
+    }))
   }
 
-  findByDateRange(startDate: string, endDate: string): Transaction[] {
+  async findByDateRange(startDate: string, endDate: string): Promise<Transaction[]> {
     const start = new Date(startDate)
     const end = new Date(endDate)
-    return this.transactions.filter((t) => {
-      const tDate = new Date(t.date)
-      return tDate >= start && tDate <= end
+    end.setHours(23, 59, 59, 999)
+
+    const transactions = await this.prisma.transaction.findMany({
+      where: {
+        date: {
+          gte: start,
+          lte: end,
+        },
+      },
+      orderBy: { date: 'desc' },
+      include: { account: true },
     })
+
+    return transactions.map((t) => ({
+      id: t.id,
+      title: t.title,
+      amount: t.type === 'income' ? t.amount : -t.amount,
+      date: t.date.toISOString().split('T')[0],
+      category: t.category,
+      notes: t.notes ?? undefined,
+      type: t.type,
+      accountId: t.accountId,
+      createdAt: t.createdAt,
+      updatedAt: t.updatedAt,
+    }))
   }
 
-  create(createTransactionDto: CreateTransactionDto): Transaction {
-    const transaction: Transaction = {
-      id: uuidv4(),
-      ...createTransactionDto,
-      createdAt: new Date(),
-      updatedAt: new Date(),
+  async create(createTransactionDto: CreateTransactionDto): Promise<Transaction> {
+    const accountId = createTransactionDto.accountId || (await this.getDefaultAccountId())
+
+    const transaction = await this.prisma.transaction.create({
+      data: {
+        title: createTransactionDto.title,
+        amount: Math.abs(createTransactionDto.amount),
+        type: createTransactionDto.amount > 0 ? 'income' : 'expense',
+        category: createTransactionDto.category || 'other',
+        notes: createTransactionDto.notes,
+        date: new Date(createTransactionDto.date),
+        accountId,
+      },
+      include: { account: true },
+    })
+
+    return {
+      id: transaction.id,
+      title: transaction.title,
+      amount: transaction.type === 'income' ? transaction.amount : -transaction.amount,
+      date: transaction.date.toISOString().split('T')[0],
+      category: transaction.category,
+      notes: transaction.notes ?? undefined,
+      type: transaction.type,
+      accountId: transaction.accountId,
+      createdAt: transaction.createdAt,
+      updatedAt: transaction.updatedAt,
     }
-    this.transactions.unshift(transaction)
-    return transaction
   }
 
-  update(id: string, updateTransactionDto: UpdateTransactionDto): Transaction | undefined {
-    const index = this.transactions.findIndex((t) => t.id === id)
-    if (index === -1) return undefined
+  async update(id: string, updateTransactionDto: UpdateTransactionDto): Promise<Transaction | null> {
+    const transaction = await this.prisma.transaction.update({
+      where: { id },
+      data: {
+        title: updateTransactionDto.title,
+        amount: updateTransactionDto.amount ? Math.abs(updateTransactionDto.amount) : undefined,
+        type: updateTransactionDto.amount ? (updateTransactionDto.amount > 0 ? 'income' : 'expense') : undefined,
+        category: updateTransactionDto.category,
+        notes: updateTransactionDto.notes,
+        date: updateTransactionDto.date ? new Date(updateTransactionDto.date) : undefined,
+      },
+      include: { account: true },
+    })
 
-    this.transactions[index] = {
-      ...this.transactions[index],
-      ...updateTransactionDto,
-      updatedAt: new Date(),
+    return {
+      id: transaction.id,
+      title: transaction.title,
+      amount: transaction.type === 'income' ? transaction.amount : -transaction.amount,
+      date: transaction.date.toISOString().split('T')[0],
+      category: transaction.category,
+      notes: transaction.notes ?? undefined,
+      type: transaction.type,
+      accountId: transaction.accountId,
+      createdAt: transaction.createdAt,
+      updatedAt: transaction.updatedAt,
     }
-    return this.transactions[index]
   }
 
-  delete(id: string): boolean {
-    const index = this.transactions.findIndex((t) => t.id === id)
-    if (index === -1) return false
-
-    this.transactions.splice(index, 1)
-    return true
+  async delete(id: string): Promise<boolean> {
+    try {
+      await this.prisma.transaction.delete({
+        where: { id },
+      })
+      return true
+    } catch {
+      return false
+    }
   }
 
-  getSummary() {
-    const totalIncome = this.transactions
-      .filter((t) => t.amount > 0)
+  async getSummary() {
+    const transactions = await this.prisma.transaction.findMany()
+
+    const totalIncome = transactions
+      .filter((t) => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0)
 
-    const totalExpenses = Math.abs(
-      this.transactions.filter((t) => t.amount < 0).reduce((sum, t) => sum + t.amount, 0),
-    )
+    const totalExpenses = transactions
+      .filter((t) => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0)
 
     return {
       totalIncome,
@@ -106,19 +187,32 @@ export class TransactionsService {
     }
   }
 
-  getSpendingByCategory() {
+  async getSpendingByCategory() {
+    const transactions = await this.prisma.transaction.findMany({
+      where: { type: 'expense' },
+    })
+
     const spending: Record<string, number> = {}
 
-    this.transactions
-      .filter((t) => t.amount < 0)
-      .forEach((t) => {
-        const category = t.category || 'Other'
-        spending[category] = (spending[category] || 0) + Math.abs(t.amount)
-      })
+    transactions.forEach((t) => {
+      const category = t.category || 'Other'
+      spending[category] = (spending[category] || 0) + t.amount
+    })
 
     return Object.entries(spending).map(([category, amount]) => ({
       category,
       amount,
     }))
+  }
+
+  private async getDefaultAccountId(): Promise<string> {
+    const account = await this.prisma.account.findFirst()
+    if (!account) {
+      const newAccount = await this.prisma.account.create({
+        data: { name: 'Default Account', balance: 0, type: 'checking' },
+      })
+      return newAccount.id
+    }
+    return account.id
   }
 }

@@ -7,18 +7,19 @@ export class AccountsController {
   constructor(private readonly accountsService: AccountsService) {}
 
   @Get()
-  findAll() {
+  async findAll() {
     return this.accountsService.findAll()
   }
 
   @Get('total-balance')
-  getTotalBalance() {
-    return { totalBalance: this.accountsService.getTotalBalance() }
+  async getTotalBalance() {
+    const totalBalance = await this.accountsService.getTotalBalance()
+    return { totalBalance }
   }
 
   @Get(':id')
-  findById(@Param('id') id: string) {
-    const account = this.accountsService.findById(id)
+  async findById(@Param('id') id: string) {
+    const account = await this.accountsService.findById(id)
     if (!account) {
       throw new HttpException('Account not found', HttpStatus.NOT_FOUND)
     }
@@ -26,13 +27,13 @@ export class AccountsController {
   }
 
   @Post()
-  create(@Body() createAccountDto: CreateAccountDto) {
+  async create(@Body() createAccountDto: CreateAccountDto) {
     return this.accountsService.create(createAccountDto)
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateAccountDto: UpdateAccountDto) {
-    const updated = this.accountsService.update(id, updateAccountDto)
+  async update(@Param('id') id: string, @Body() updateAccountDto: UpdateAccountDto) {
+    const updated = await this.accountsService.update(id, updateAccountDto)
     if (!updated) {
       throw new HttpException('Account not found', HttpStatus.NOT_FOUND)
     }
@@ -40,8 +41,8 @@ export class AccountsController {
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string) {
-    const deleted = this.accountsService.delete(id)
+  async delete(@Param('id') id: string) {
+    const deleted = await this.accountsService.delete(id)
     if (!deleted) {
       throw new HttpException('Account not found', HttpStatus.NOT_FOUND)
     }
