@@ -4,7 +4,9 @@ export class Transaction {
   amount: number
   date: string
   category?: string
-  notes?: string
+  notes?: string | null
+  type?: string // 'income' or 'expense'
+  accountId?: string
   createdAt?: Date
   updatedAt?: Date
 }
