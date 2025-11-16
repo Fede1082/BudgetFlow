@@ -43,6 +43,12 @@ services:
         condition: service_healthy
     networks:
       - budgetflow-network
+    develop:
+      watch:
+        - path: ./backend/src
+          action: rebuild
+        - path: ./backend/package.json
+          action: rebuild
 
   frontend:
     build:
@@ -57,6 +63,12 @@ services:
       - backend
     networks:
       - budgetflow-network
+    develop:
+      watch:
+        - path: ./client/src
+          action: rebuild
+        - path: ./client/package.json
+          action: rebuild
 
 networks:
   budgetflow-network:

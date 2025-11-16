@@ -1,8 +1,26 @@
 <template>
   <div class="max-w-7xl mx-auto">
-    <div class="mb-8">
-      <h2 class="text-3xl font-bold text-gray-900 mb-2">All Transactions</h2>
-      <p class="text-gray-600">Manage and view all your transactions</p>
+    <div class="mb-8 flex items-center justify-between">
+      <div>
+        <h2 class="text-3xl font-bold text-gray-900 mb-2">All Transactions</h2>
+        <p class="text-gray-600">Manage and view all your transactions</p>
+      </div>
+      <div class="flex gap-3">
+        <button
+          @click="openAddTransactionModal"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-150 flex items-center gap-2"
+        >
+          <i class="fas fa-plus"></i>
+          Add Transaction
+        </button>
+        <button
+          @click="clearAllTransactions"
+          class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-150 flex items-center gap-2"
+        >
+          <i class="fas fa-trash"></i>
+          Clear All
+        </button>
+      </div>
     </div>
 
     <!-- Loading state -->
@@ -38,6 +56,14 @@
         <TransactionsTable :transactions="transactions" @edit="handleEdit" @delete="handleDelete" />
       </div>
     </div>
+
+    <!-- Transaction Modal -->
+    <TransactionModal
+      :is-open="isModalOpen"
+      :transaction="selectedTransaction"
+      @close="closeModal"
+      @save="handleTransactionSaved"
+    />
   </div>
 </template>
 
@@ -45,6 +71,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import TransactionsTable from './TransactionsTable.vue'
+import TransactionModal from './TransactionModal.vue'
 import { useTransactionsStore } from '../stores/transactions'
 import { TransactionAPI, ApiUtils } from '../services/api'
 import type { Transaction } from '../services/api'
@@ -57,6 +84,8 @@ const transactions = ref<Transaction[]>([])
 const loading = ref(false)
 const error = ref('')
 const refreshing = ref(false)
+const isModalOpen = ref(false)
+const selectedTransaction = ref<Transaction | null>(null)
 
 /**
  * Load transactions from API
@@ -89,12 +118,35 @@ async function refreshTransactions() {
 }
 
 /**
- * Handle edit action (navigate to detail/edit page)
+ * Open modal for adding new transaction
+ */
+function openAddTransactionModal() {
+  selectedTransaction.value = null
+  isModalOpen.value = true
+}
+
+/**
+ * Handle edit action (open modal with transaction)
  */
 function handleEdit(tx: Transaction) {
-  console.log('Edit transaction:', tx)
-  // TODO: Navigate to edit modal or edit page when implemented
-  // router.push({ path: `/transactions/${tx.id}/edit` })
+  selectedTransaction.value = tx
+  isModalOpen.value = true
+}
+
+/**
+ * Close modal
+ */
+function closeModal() {
+  isModalOpen.value = false
+  selectedTransaction.value = null
+}
+
+/**
+ * Handle transaction saved (create or update)
+ */
+async function handleTransactionSaved(tx: Transaction) {
+  await loadTransactions()
+  closeModal()
 }
 
 /**
@@ -117,6 +169,27 @@ async function handleDelete(tx: Transaction) {
   } catch (err) {
     alert(`Failed to delete transaction: ${ApiUtils.formatError(err)}`)
     console.error('Error deleting transaction:', err)
+  }
+}
+
+/**
+ * Clear all transactions
+ */
+async function clearAllTransactions() {
+  if (!confirm('Are you sure you want to delete ALL transactions? This cannot be undone!')) {
+    return
+  }
+
+  try {
+    for (const tx of transactions.value) {
+      await TransactionAPI.delete(tx.id)
+    }
+    transactions.value = []
+    store.transactions.length = 0
+    console.log('All transactions deleted successfully')
+  } catch (err) {
+    alert(`Failed to clear transactions: ${ApiUtils.formatError(err)}`)
+    console.error('Error clearing transactions:', err)
   }
 }
 
