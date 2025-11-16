@@ -3,12 +3,26 @@
  * Centralizes all backend API calls for the BudgetFlow application
  */
 
-// Point directly to backend on port 3000
-// In production, use VITE_API_URL env var
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
+// Determine API base URL based on environment
+// In Docker/Vite dev server: use relative /api path (Nginx/Vite will proxy)
+// In browser: use window.location to construct URL
+const getApiBaseUrl = (): string => {
+  // Check if running in Docker (Vite dev server listens on port 5173)
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    // Local development - use port 3000
+    return 'http://localhost:3000/api'
+  }
+  
+  // In Docker containers, use relative path
+  // The frontend container (Vite) will proxy requests
+  return '/api'
+}
+
+const API_BASE_URL = getApiBaseUrl()
 
 // Debug log
 console.log('🌐 API Base URL:', API_BASE_URL)
+console.log('🌐 Window Hostname:', typeof window !== 'undefined' ? window.location.hostname : 'N/A')
 
 // Types
 export interface Transaction {
