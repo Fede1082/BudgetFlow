@@ -1,10 +1,22 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import Header from './components/Header.vue'
 import Sidebar from './components/Sidebar.vue'
+
+const route = useRoute()
+const isAuthenticated = ref(false)
+
+onMounted(() => {
+  isAuthenticated.value = localStorage.getItem('isAuthenticated') === 'true'
+})
 </script>
 
 <template>
-  <div class="flex min-h-screen bg-gray-50">
+  <div v-if="route.path === '/login'" class="min-h-screen">
+    <router-view />
+  </div>
+  <div v-else class="flex min-h-screen bg-gray-50">
     <!-- Sidebar Navigation -->
     <Sidebar />
 

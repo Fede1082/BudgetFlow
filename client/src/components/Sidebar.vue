@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
+const router = useRouter()
 
 const menuItems = [
   { icon: 'fas fa-chart-line', label: 'Dashboard', path: '/' },
@@ -15,8 +16,13 @@ const menuItems = [
 
 const bottomItems = [
   { icon: 'fas fa-circle-question', label: 'Help', path: '/help' },
-  { icon: 'fas fa-right-from-bracket', label: 'Log out', path: '/logout' },
 ]
+
+function handleLogout() {
+  localStorage.removeItem('isAuthenticated')
+  localStorage.removeItem('user')
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -79,8 +85,12 @@ const bottomItems = [
       <button class="w-10 h-10 rounded-full bg-blue-400 hover:bg-blue-300 flex items-center justify-center transition-colors" title="Profile">
         <i class="fas fa-user text-sm"></i>
       </button>
-      <button class="w-10 h-10 rounded-full bg-blue-400 hover:bg-blue-300 flex items-center justify-center transition-colors" title="Theme">
-        <i class="fas fa-moon text-sm"></i>
+      <button 
+        @click="handleLogout"
+        class="w-10 h-10 rounded-full bg-blue-400 hover:bg-blue-300 flex items-center justify-center transition-colors" 
+        title="Logout"
+      >
+        <i class="fas fa-right-from-bracket text-sm"></i>
       </button>
     </div>
   </div>
