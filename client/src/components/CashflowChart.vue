@@ -72,29 +72,91 @@ async function loadData() {
 
       chartOptions.value = {
         chart: {
-          type: 'line',
+          type: 'bar',
           toolbar: {
             show: true,
           },
+          stacked: false,
+          sparkline: {
+            enabled: false,
+          },
         },
-        colors: ['#10b981', '#ef4444'],
+        colors: ['#3b82f6', '#ef4444'],
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            columnWidth: '65%',
+            borderRadius: 3,
+            borderRadiusApplication: 'end',
+            dataLabels: {
+              position: 'top',
+            },
+            distributed: false,
+          },
+        },
+        dataLabels: {
+          enabled: false,
+        },
         stroke: {
-          curve: 'smooth',
+          show: true,
           width: 2,
+          colors: ['transparent'],
         },
         xaxis: {
           categories: monthlyLabels,
+          axisBorder: {
+            show: false,
+          },
+          axisTicks: {
+            show: false,
+          },
+          title: {
+            text: undefined,
+          },
         },
         yaxis: {
           title: {
             text: 'Amount (€)',
+            style: {
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#374151',
+            },
+          },
+          axisBorder: {
+            show: false,
+          },
+        },
+        fill: {
+          opacity: 1,
+        },
+        tooltip: {
+          y: {
+            formatter: (val: any) => {
+              return '€ ' + val.toFixed(2)
+            },
           },
         },
         legend: {
           position: 'top',
+          horizontalAlign: 'left',
+          fontSize: '13px',
+          fontFamily: 'inherit',
+          offsetY: 5,
         },
-        dataLabels: {
-          enabled: false,
+        grid: {
+          borderColor: '#e5e7eb',
+          strokeDashArray: 0,
+          yaxis: {
+            lines: {
+              show: true,
+            },
+          },
+          xaxis: {
+            lines: {
+              show: false,
+            },
+          },
         },
       }
     } else {
@@ -137,29 +199,91 @@ async function loadData() {
 
       chartOptions.value = {
         chart: {
-          type: 'line',
+          type: 'bar',
           toolbar: {
             show: true,
           },
+          stacked: false,
+          sparkline: {
+            enabled: false,
+          },
         },
-        colors: ['#10b981', '#ef4444'],
+        colors: ['#3b82f6', '#ef4444'],
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            columnWidth: '65%',
+            borderRadius: 3,
+            borderRadiusApplication: 'end',
+            dataLabels: {
+              position: 'top',
+            },
+            distributed: false,
+          },
+        },
+        dataLabels: {
+          enabled: false,
+        },
         stroke: {
-          curve: 'smooth',
+          show: true,
           width: 2,
+          colors: ['transparent'],
         },
         xaxis: {
           categories: yearlyLabels,
+          axisBorder: {
+            show: false,
+          },
+          axisTicks: {
+            show: false,
+          },
+          title: {
+            text: undefined,
+          },
         },
         yaxis: {
           title: {
             text: 'Amount (€)',
+            style: {
+              fontSize: '12px',
+              fontWeight: 600,
+              color: '#374151',
+            },
+          },
+          axisBorder: {
+            show: false,
+          },
+        },
+        fill: {
+          opacity: 1,
+        },
+        tooltip: {
+          y: {
+            formatter: (val: any) => {
+              return '€ ' + val.toFixed(2)
+            },
           },
         },
         legend: {
           position: 'top',
+          horizontalAlign: 'left',
+          fontSize: '13px',
+          fontFamily: 'inherit',
+          offsetY: 5,
         },
-        dataLabels: {
-          enabled: false,
+        grid: {
+          borderColor: '#e5e7eb',
+          strokeDashArray: 0,
+          yaxis: {
+            lines: {
+              show: true,
+            },
+          },
+          xaxis: {
+            lines: {
+              show: false,
+            },
+          },
         },
       }
     }
@@ -232,7 +356,7 @@ onMounted(() => {
     <!-- Chart -->
     <div v-else>
       <VueApexCharts
-        type="line"
+        type="bar"
         height="350"
         :series="series"
         :options="chartOptions"
