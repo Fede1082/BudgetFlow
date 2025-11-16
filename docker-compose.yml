@@ -47,7 +47,7 @@ services:
   frontend:
     build:
       context: ./client
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: budgetflow-frontend
     ports:
       - "5173:80"
@@ -64,3 +64,4 @@ networks:
 
 volumes:
   postgres_data:
+
