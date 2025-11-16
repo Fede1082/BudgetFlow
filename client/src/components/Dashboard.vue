@@ -2,6 +2,8 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import TransactionsTable from './TransactionsTable.vue'
+import CashflowChart from './CashflowChart.vue'
+import SpendingByCategory from './SpendingByCategory.vue'
 import { useTransactionsStore } from '../stores/transactions'
 import { TransactionAPI, StatsAPI, HealthAPI } from '../services/api'
 import type { Transaction } from '../services/api'
@@ -23,8 +25,8 @@ function goToTransactions() {
 }
 
 function handleEdit(tx: any) {
-  // navigate to transaction detail/edit page (detail implemented)
-  router.push({ path: `/transactions/${tx.id}` })
+  // Navigate to transactions page with the transaction to edit
+  router.push({ path: '/transactions' })
 }
 
 function handleDelete(tx: any) {
@@ -38,14 +40,14 @@ async function loadStats() {
   statsLoading.value = true
 
   await HealthAPI.check().then((res) => {
-  console.log('API Health:', res)
+    console.log('API Health:', res)
   })
   try {
     const summary = await StatsAPI.getSummary()
     stats.value = {
       totalIncome: summary.totalIncome || 0,
       totalExpenses: summary.totalExpenses || 0,
-      netBalance: summary.netBalance || 0,
+      netBalance: (summary.totalIncome || 0) - (summary.totalExpenses || 0),
     }
   } catch (err) {
     console.error('Error loading stats:', err)
@@ -53,7 +55,7 @@ async function loadStats() {
     stats.value = {
       totalIncome: 3000,
       totalExpenses: 920.5,
-      netBalance: 2079.5,
+      netBalance: 3000 - 920.5,
     }
   }
 }
@@ -81,8 +83,6 @@ async function loadRecentTransactions() {
 onMounted(() => {
   loadStats()
   loadRecentTransactions()
-
-  
 })
 </script>
 
@@ -123,17 +123,18 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Charts Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <CashflowChart />
+      <SpendingByCategory />
+    </div>
+
     <div class="bg-white rounded-lg shadow-lg overflow-hidden">
       <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 flex items-center justify-between">
         <h3 class="text-xl font-bold text-white">Recent Transactions</h3>
-        <div class="flex gap-3">
-          <button @click="goToTransactions" class="bg-white text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg font-medium transition-colors duration-200 shadow-sm">
-            <i class="fas fa-plus mr-2"></i>Add Transaction
-          </button>
-          <button @click="store.clear" class="bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200">
-            <i class="fas fa-trash mr-2"></i>Clear All
-          </button>
-        </div>
+        <button @click="goToTransactions" class="bg-white text-blue-600 hover:bg-blue-50 px-4 py-2 rounded-lg font-medium transition-colors duration-200 text-sm">
+          <i class="fas fa-eye mr-2"></i>View All
+        </button>
       </div>
       <div class="p-6">
         <TransactionsTable
